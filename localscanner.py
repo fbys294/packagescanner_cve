@@ -30,7 +30,7 @@ for files in glob.iglob("/home/pobe/Workspace/crunchy-on-demand/crunchy-postgres
                 print(name)
             elif "Version:" in lines:
                 version = lines
-                version2 = re.sub('[.]C(.+)', '', 'cversion, flags=re.IGNORECASE)
+                version2 = re.sub('[.]C(.+)', '', version, flags=re.IGNORECASE)
                 print(version)
             elif "Architecture:" in lines:
                 arctech = (lines.split())[1]
