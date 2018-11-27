@@ -7,7 +7,11 @@ package_spec_list = []
 package_final_list = []
 job_to_package = {}
 package_to_files = {}
-workplace_dir = "/home/pobe/Workspace/crunchy-on-demand/crunchy-postgres-bosh-new/"
+workplace_dir = str(os.path.expanduser("~") + "/workspace/crunchy-postgres-bosh/") 
+workplace_jobs = str(os.path.expanduser("~") + "/workspace/crunchy-postgres-bosh/jobs/*/spec")
+workplace_package = str(os.path.expanduser("~") + "/workspace/crunchy-postgres-bosh/packages/*/spec")
+boshjson = str(os.getcwd() + "/boshjsontemp.json")
+
 #---- Yaml to Json import
 '''
 yamlfile = open('/tmp/bosh.yaml', 'r')
@@ -43,7 +47,7 @@ def getpackage (pacakges):
 #----------------------------
 
 'Loading file as json'
-jsonFile = open('/tmp/boshjsontemp.json', 'r')
+jsonFile = open(boshjson, 'r')
 values = json.load(jsonFile)
 jsonFile.close()
 
@@ -54,11 +58,11 @@ print(job_name_list)
 
 
 # Find all files called spec and insert them into job_spec_list.
-for specs in glob.glob("/home/pobe/Workspace/crunchy-on-demand/crunchy-postgres-bosh-new/jobs/*/spec", recursive=True ):
+for specs in glob.glob(workplace_jobs, recursive=True ):
     job_spec_list.append(specs)
 
 # Find all files called spec and insert them into a packages_spec_list.
-for specs2 in glob.glob("/home/pobe/Workspace/crunchy-on-demand/crunchy-postgres-bosh-new/packages/*/spec", recursive=True ):
+for specs2 in glob.glob(workplace_package, recursive=True ):
     package_spec_list.append(specs2)
 
 print("\nPackage to files list")
@@ -95,13 +99,13 @@ full_list = []
 
 '''
 for folder in package_final_list():
-    path = '/home/pobe/Workspace/crunchy-on-demand/crunchy-postgres-bosh-new/blob/%s' % (folder)
+    path = '/home/paulo/workspace/crunchy-postgres-bosh/src/%s' % (folder)
     for filename in os.listdir(path):
         print (path, filename)
 '''
 
 # Find all files called spec and insert them into job_spec_list.
-#for specs3 in glob.glob("/home/pobe/Workspace/crunchy-on-demand/crunchy-postgres-bosh-new/blob/*/**", recursive=True )
+#for specs3 in glob.glob("/home/paulo/workspace/crunchy-on-demand/crunchy-postgres-bosh/src/*/**", recursive=True )
 
 
 #json_data = json.dumps(job_to_package)

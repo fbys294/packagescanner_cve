@@ -1,0 +1,475 @@
+{
+  "director_uuid": "<%= `bosh status --uuid` %>",
+  "instance_groups": [
+    {
+      "azs": [
+        "default"
+      ],
+      "instances": 3,
+      "jobs": [
+        {
+          "consumes": {
+            "join_ip": {
+              "from": "ip"
+            }
+          },
+          "name": "consul",
+          "provides": {
+            "consul_ip": {
+              "as": "ip"
+            }
+          },
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "consul-template",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "ccm",
+          "release": "crunchy-postgresql"
+        }
+      ],
+      "name": "consul-server",
+      "networks": [
+        {
+          "name": "pgsql-z1"
+        }
+      ],
+      "properties": {
+        "consul": {
+          "service": {
+            "group": "zone1"
+          }
+        }
+      },
+      "stemcell": "default",
+      "vm_type": "default"
+    },
+    {
+      "azs": [
+        "default"
+      ],
+      "instances": 1,
+      "jobs": [
+        {
+          "consumes": {
+            "join_ip": {
+              "from": "ip"
+            }
+          },
+          "name": "consul",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "consul-template",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "pgbackrest",
+          "release": "crunchy-postgresql"
+        }
+      ],
+      "name": "pgbackrest-zone1",
+      "networks": [
+        {
+          "name": "pgsql-z1"
+        }
+      ],
+      "persistent_disk": 1024,
+      "properties": {
+        "consul": {
+          "server_type": "client",
+          "service": {
+            "group": "zone1",
+            "name": "pgbackrest",
+            "type": "backup"
+          }
+        },
+        "pgbackrest": {
+          "server_type": "server"
+        }
+      },
+      "stemcell": "default",
+      "vm_type": "default"
+    },
+    {
+      "azs": [
+        "default"
+      ],
+      "instances": 2,
+      "jobs": [
+        {
+          "consumes": {
+            "join_ip": {
+              "from": "ip"
+            }
+          },
+          "name": "consul",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "consul-template",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "pgbackrest",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "consumes": {
+            "auth_ip": {
+              "from": "pgsql-ip"
+            },
+            "proxy_auth_ip": {
+              "from": "proxy-ip"
+            }
+          },
+          "name": "postgresql",
+          "provides": {
+            "auth_ip": {
+              "as": "pgsql-ip"
+            }
+          },
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "compliance",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "dashboard",
+          "release": "crunchy-postgresql"
+        }
+      ],
+      "name": "postgresql-zone1",
+      "networks": [
+        {
+          "name": "pgsql-z1"
+        }
+      ],
+      "persistent_disk": 1024,
+      "properties": {
+        "compliance": {
+          "inspec_format": "(( grab .properties.compliance.inspec_format ))",
+          "inspec_profile": "(( grab .properties.compliance.inspec_profile ))",
+          "inspec_schedule": "(( grab .properties.compliance.inspec_schedule ))"
+        },
+        "consul": {
+          "server_type": "client",
+          "service": {
+            "group": "zone1",
+            "name": "postgresql",
+            "port": 5432,
+            "type": "unassigned"
+          }
+        },
+        "dashboard": {
+          "cron_schedule": "(( grab .properties.dashboard.cron_schedule ))",
+          "database_role_password": "(( grab .properties.dashboard.database_role_password ))"
+        },
+        "pgbackrest": {
+          "server_type": "client"
+        }
+      },
+      "stemcell": "default",
+      "update": {
+        "max_in_flight": 1,
+        "serial": true
+      },
+      "vm_type": "default"
+    },
+    {
+      "azs": [
+        "default"
+      ],
+      "instances": 1,
+      "jobs": [
+        {
+          "consumes": {
+            "join_ip": {
+              "from": "ip"
+            }
+          },
+          "name": "consul",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "consul-template",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "haproxy",
+          "provides": {
+            "lb_auth_ip": {
+              "as": "proxy-ip"
+            }
+          },
+          "release": "crunchy-postgresql"
+        }
+      ],
+      "name": "postgresql-haproxy-zone1",
+      "networks": [
+        {
+          "name": "pgsql-z1"
+        }
+      ],
+      "properties": {
+        "consul": {
+          "server_type": "client",
+          "service": {
+            "group": "zone1",
+            "name": "haproxy",
+            "port": 5433,
+            "type": "postgresql"
+          }
+        },
+        "haproxy": {
+          "config": {
+            "mode": "tcp",
+            "port": 5433
+          },
+          "server_type": "postgresql"
+        }
+      },
+      "stemcell": "default",
+      "vm_type": "default"
+    },
+    {
+      "azs": [
+        "default"
+      ],
+      "instances": "(( .instance_groups.broker.instances ))",
+      "jobs": [
+        {
+          "consumes": {
+            "join_ip": {
+              "from": "ip"
+            }
+          },
+          "name": "consul",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "broker",
+          "provides": {
+            "broker_auth_ip": {
+              "as": "broker-ip"
+            }
+          },
+          "release": "crunchy-postgresql"
+        }
+      ],
+      "name": "broker",
+      "networks": [
+        {
+          "name": "pgsql-z1"
+        }
+      ],
+      "persistent_disk": 1024,
+      "properties": {
+        "broker": {
+          "admin": {
+            "password": "(( .instance_groups.broker.properties.broker.admin.password ))",
+            "username": "(( .instance_groups.broker.properties.broker.admin.username ))"
+          },
+          "catalog": "services:\n- name: postgresql-9.5\n  id: 32ea3997-4f54-432f-83c5-83663b13bcce\n  description: PostgreSQL Database\n  bindable: true\n  tags:\n  - \"zone1\"\n  plans:\n  - id: e0e04548-d08e-4540-98d4-2436932cc77c\n    name: db-10gb\n    description: Database with 10gb of disk space\n    max_connections: 10\n  - id: f0e04548-d08e-4540-98d4-2436932cc77c\n    name: db-20gb\n    description: Database with 20gb of disk space\n    max_connections: 20\n"
+        },
+        "consul": {
+          "server_type": "client",
+          "service": {
+            "group": "global",
+            "name": "broker",
+            "port": "(( .instance_groups.broker.properties.consul.service.port ))",
+            "type": "broker"
+          }
+        }
+      },
+      "stemcell": "default",
+      "vm_type": "default"
+    },
+    {
+      "azs": [
+        "default"
+      ],
+      "instances": 1,
+      "jobs": [
+        {
+          "consumes": {
+            "join_ip": {
+              "from": "ip"
+            }
+          },
+          "name": "consul",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "consul-template",
+          "release": "crunchy-postgresql"
+        },
+        {
+          "name": "haproxy",
+          "provides": {
+            "broker_proxy_ip": {
+              "as": "proxy_ip"
+            }
+          },
+          "release": "crunchy-postgresql"
+        }
+      ],
+      "name": "broker-haproxy",
+      "networks": [
+        {
+          "name": "pgsql-z1"
+        }
+      ],
+      "properties": {
+        "consul": {
+          "server_type": "client",
+          "service": {
+            "group": "global",
+            "name": "haproxy",
+            "port": 8080,
+            "type": "broker"
+          }
+        },
+        "haproxy": {
+          "config": {
+            "mode": "http",
+            "port": 8080
+          },
+          "server_type": "broker"
+        }
+      },
+      "stemcell": "default",
+      "vm_type": "default"
+    },
+    {
+      "azs": [
+        "default"
+      ],
+      "instances": 1,
+      "jobs": [
+        {
+          "consumes": {
+            "broker_proxy_ip": {
+              "from": "proxy_ip"
+            }
+          },
+          "name": "broker-registrar",
+          "release": "crunchy-postgresql"
+        }
+      ],
+      "lifecycle": "errand",
+      "name": "broker-registrar",
+      "networks": [
+        {
+          "name": "pgsql-z1"
+        }
+      ],
+      "properties": {
+        "broker-registrar": {
+          "broker": {
+            "name": "(( .instance_groups.broker-registrar.properties.broker-registrar.broker.name ))",
+            "services": "(( .instance_groups.broker-registrar.properties.broker-registrar.broker.services ))"
+          }
+        },
+        "cf": {
+          "admin_password": "(( .instance_groups.broker-registrar.properties.cf.admin_password ))",
+          "admin_username": "(( .instance_groups.broker-registrar.properties.cf.admin_username ))",
+          "api_url": "(( .instance_groups.broker-registrar.properties.cf.api_url ))"
+        }
+      },
+      "stemcell": "default",
+      "vm_type": "default"
+    },
+    {
+      "azs": [
+        "default"
+      ],
+      "instances": 1,
+      "jobs": null,
+      "lifecycle": "errand",
+      "name": "acceptance-tests",
+      "networks": [
+        {
+          "name": "pgsql-z1"
+        }
+      ],
+      "properties": {
+        "acceptance_tests": {
+          "cf": {
+            "api_ssl_validation": "(( .instance_groups.acceptance_tests.properties.acceptance-tests.cf.api_ssl_validation ))",
+            "api_url": "(( .instance_groups.acceptance_tests.properties.acceptance-tests.cf.api_url ))",
+            "domain": "(( .instance_groups.acceptance_tests.properties.acceptance-tests.cf.domain ))",
+            "org": "(( .instance_groups.acceptance_tests.properties.acceptance-tests.cf.org ))",
+            "password": "(( .instance_groups.acceptance_tests.properties.acceptance-tests.cf.password ))",
+            "space": "(( .instance_groups.acceptance_tests.properties.acceptance-tests.cf.space ))",
+            "user": "(( .instance_groups.acceptance_tests.properties.acceptance-tests.cf.user ))"
+          }
+        },
+        "consul": {
+          "server_type": "client"
+        }
+      },
+      "stemcell": "default",
+      "vm_type": "default"
+    }
+  ],
+  "name": "crunchy-postgresql",
+  "properties": {
+    "arcgis": {
+      "debug": "true"
+    },
+    "broker": {
+      "admin": {
+        "password": "(( .properties.broker.admin.password ))",
+        "username": "(( .properties.broker.admin.username ))"
+      }
+    },
+    "compliance": {
+      "debug": "true"
+    },
+    "consul": {
+      "ca_crt": "(( .properties.consul.ca_crt ))\n",
+      "client_crt": "(( .properties.consul.client_crt ))\n",
+      "client_key": "(( .properties.consul.client_key ))\n",
+      "debug": "true",
+      "server_crt": "(( .properties.consul.server_crt ))\n",
+      "server_key": "(( .properties.consul.server_key ))\n"
+    },
+    "consul-template": {
+      "debug": "true"
+    },
+    "dashboard": {
+      "debug": "true"
+    },
+    "haproxy": {
+      "debug": "true"
+    },
+    "prometheus": {
+      "admin_pass": "(( .properties.prometheus.admin_pass ))",
+      "admin_user": "(( .properties.prometheus.admin_user ))"
+    }
+  },
+  "releases": [
+    {
+      "name": "crunchy-arcgis",
+      "version": "latest"
+    }
+  ],
+  "stemcells": [
+    {
+      "alias": "default",
+      "os": "ubuntu-trusty",
+      "version": "latest"
+    }
+  ],
+  "update": {
+    "canaries": 1,
+    "canary_watch_time": "1000-100000",
+    "max_in_flight": 5,
+    "serial": true,
+    "update_watch_time": "1000-300000"
+  }
+}

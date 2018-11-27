@@ -1,6 +1,6 @@
 #import os
 #from pprint import pprint
-import glob, subprocess, vulners, re, json
+import glob, os.path, subprocess, vulners, re, json
 import urllib.request as urllib2
 
 VULNERS_LINKS = {'pkgChecker':'https://vulners.com/api/v3/audit/audit/',
@@ -12,11 +12,11 @@ vulners_api = vulners.Vulners()
 name = ""
 version = ""
 package_list = []
+workspace_source = str(os.path.expanduser("~") + "/workspace/crunchy-postgres-bosh/src/*/*") 
 
+print(workspace_source)
 
-
-
-for files in glob.iglob("/home/pobe/Workspace/crunchy-on-demand/crunchy-postgres-bosh-new/blobs/*/*", recursive=True):
+for files in glob.iglob(workspace_source, recursive=True):
     #package_info = str(os.system("dpkg --info " + files))
     if "deb" in files:
         package_info = subprocess.check_output("dpkg --info " + files, shell=True)
@@ -59,7 +59,7 @@ for files in glob.iglob("/home/pobe/Workspace/crunchy-on-demand/crunchy-postgres
 print(package_list)
 print("Total provided packages: %s" % len(package_list))
 payload = {'os': 'ubuntu',
-           'version': '14.04',
+           'version': '18.04',
            'package': package_list}
 req = urllib2.Request(VULNERS_LINKS.get('pkgChecker'))
 req.add_header('Content-Type', 'application/json')
